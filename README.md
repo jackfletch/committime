@@ -2,6 +2,8 @@
 
 `committime` is a CLI tool for rewriting author and committer times of git commits
 
+[![GoDoc](https://godoc.org/github.com/jackfletch/committime?status.svg)](https://godoc.org/github.com/jackfletch/committime)
+
 ## Installation
 
 `committime` can be installed via:
