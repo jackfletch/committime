@@ -55,16 +55,12 @@ func main() {
 		log.Fatalf("cmd.Run() failed: %s\n", err)
 	}
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
-	shaColor := color.New(color.FgBlue, color.Bold).SprintFunc()
-	timeColor := color.New(color.FgGreen, color.Bold).SprintFunc()
-	authorColor := color.New(color.Faint).SprintFunc()
-	tagColor := color.New(color.FgYellow, color.Bold).SprintFunc()
 	for i := 0; ; i++ {
 		if scanner.Scan() == false {
 			break
 		}
-		sha, time, message, author, tags := splitGitLogLine(scanner.Text(), "@#@")
-		fmt.Printf("[%d] %s - (%s) %s - %s%s\n", i, shaColor(sha), timeColor(time), message, authorColor(author), tagColor(tags))
+		commit := parseGitLogLine(scanner.Text(), "@#@")
+		fmt.Printf("[%d] %s\n", i, commit.color())
 	}
 
 	scanner = bufio.NewScanner(os.Stdin)
@@ -176,7 +172,24 @@ func getLastNRevSha(rev int) string {
 	return string(bytes.TrimRight(buf, "\n"))
 }
 
-func splitGitLogLine(s, sep string) (string, string, string, string, string) {
+type gitLogLine struct {
+	Sha     string
+	Date    string
+	Message string
+	Author  string
+	Tags    string
+}
+
+func parseGitLogLine(s, sep string) gitLogLine {
 	x := strings.Split(s, sep)
-	return x[0], x[1], x[2], x[3], x[4]
+	return gitLogLine{Sha: x[0], Date: x[1], Message: x[2], Author: x[3], Tags: x[4]}
+}
+
+func (line gitLogLine) color() string {
+	shaColor := color.New(color.FgBlue, color.Bold).SprintFunc()
+	timeColor := color.New(color.FgGreen, color.Bold).SprintFunc()
+	authorColor := color.New(color.Faint).SprintFunc()
+	tagColor := color.New(color.FgYellow, color.Bold).SprintFunc()
+
+	return fmt.Sprintf("%s - (%s) %s - %s%s", shaColor(line.Sha), timeColor(line.Date), line.Message, authorColor(line.Author), tagColor(line.Tags))
 }
