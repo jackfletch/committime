@@ -20,4 +20,6 @@ go get -u github.com/jackfletch/committime
 ```
 
 ## TODO:
+* Add feature to only list local commits so force push isn't needed
+* Add feature to reset committer date to author date
 * Add option to omit seconds and use current seconds (or random)
