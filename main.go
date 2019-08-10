@@ -76,12 +76,12 @@ func main() {
 		log.Fatalf("strconv.Atoi(input) failed: %s\n", err)
 	}
 
-	revSha := getLastNRevSha(rev)
+	revHash := getLastNRevHash(rev)
 	authorDate := getAuthorDate(rev)
 	committerDate := getCommitterDate(rev)
 
 	commitColor := color.New(color.FgYellow).PrintfFunc()
-	commitColor("\ncommit %s\n", revSha)
+	commitColor("\ncommit %s\n", revHash)
 	commitColor("GIT_AUTHOR_DATE=\"%s\"\n", authorDate)
 	commitColor("GIT_COMMITTER_DATE=\"%s\"\n", committerDate)
 
@@ -130,7 +130,7 @@ func main() {
 		newCommitterDate = strings.TrimSpace(input)
 	}
 
-	envFilter := fmt.Sprintf("if [ $GIT_COMMIT = %s ]\nthen\nexport GIT_AUTHOR_DATE=\"%s\"\nexport GIT_COMMITTER_DATE=\"%s\"\nfi", revSha, newAuthorDate, newCommitterDate)
+	envFilter := fmt.Sprintf("if [ $GIT_COMMIT = %s ]\nthen\nexport GIT_AUTHOR_DATE=\"%s\"\nexport GIT_COMMITTER_DATE=\"%s\"\nfi", revHash, newAuthorDate, newCommitterDate)
 	cmd = exec.Command("git", "filter-branch", "-f", "--env-filter", envFilter)
 	buf, err = cmd.CombinedOutput()
 	if err != nil {
@@ -163,7 +163,7 @@ func getCommitterDate(rev int) string {
 	return string(bytes.TrimRight(buf, "\n"))
 }
 
-func getLastNRevSha(rev int) string {
+func getLastNRevHash(rev int) string {
 	cmd := exec.Command("git", "rev-parse", fmt.Sprintf("HEAD~%d", rev))
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
@@ -173,23 +173,23 @@ func getLastNRevSha(rev int) string {
 }
 
 type gitLogLine struct {
-	Sha     string
+	Hash    string
 	Date    string
 	Message string
 	Author  string
 	Tags    string
 }
 
-func parseGitLogLine(s, sep string) gitLogLine {
+func parseGitLogLine(s, sep string) *gitLogLine {
 	x := strings.Split(s, sep)
-	return gitLogLine{Sha: x[0], Date: x[1], Message: x[2], Author: x[3], Tags: x[4]}
+	return &gitLogLine{Hash: x[0], Date: x[1], Message: x[2], Author: x[3], Tags: x[4]}
 }
 
-func (line gitLogLine) color() string {
-	shaColor := color.New(color.FgBlue, color.Bold).SprintFunc()
+func (line *gitLogLine) color() string {
+	hashColor := color.New(color.FgBlue, color.Bold).SprintFunc()
 	timeColor := color.New(color.FgGreen, color.Bold).SprintFunc()
 	authorColor := color.New(color.Faint).SprintFunc()
 	tagColor := color.New(color.FgYellow, color.Bold).SprintFunc()
 
-	return fmt.Sprintf("%s - (%s) %s - %s%s", shaColor(line.Sha), timeColor(line.Date), line.Message, authorColor(line.Author), tagColor(line.Tags))
+	return fmt.Sprintf("%s - (%s) %s - %s%s", hashColor(line.Hash), timeColor(line.Date), line.Message, authorColor(line.Author), tagColor(line.Tags))
 }
